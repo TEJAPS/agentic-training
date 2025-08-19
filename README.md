@@ -16,6 +16,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
   - Create repo: `LearnGitHub` → Practice 25+ commands.
   - Create a team repo (5 members) → simulate collaboration.
   - Explore "Evolution of AI" articles/videos shared.
+  - 🔎 **AI Tools Exploration**: Try **AI Chatbots** → [ChatGPT](https://chat.openai.com), [Claude](https://claude.ai), [Perplexity](https://perplexity.ai).  
 
 ---
 
@@ -28,6 +29,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Takeaway Tasks**:
   - Explore LLM concepts from the session.
   - GitHub assignment: Implement tokenizer + embeddings lookup.
+  - 🔎 **AI Tools Exploration**: Try **AI Image Generation** → [DALL·E](https://openai.com/dall-e), [Stable Diffusion](https://stability.ai), [Leonardo.AI](https://leonardo.ai).  
 
 ---
 
@@ -39,6 +41,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Takeaway Tasks**:
   - Explore attention concepts.
   - GitHub assignment: Implement attention in code.
+  - 🔎 **AI Tools Exploration**: Try **AI Writing Tools** → [Grammarly](https://grammarly.com), [Jasper](https://jasper.ai), [Copy.ai](https://copy.ai).  
 
 ---
 
@@ -50,6 +53,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Takeaway Tasks**:
   - Explore differences between the three.
   - GitHub assignment: Extend chatbot with custom prompts.
+  - 🔎 **AI Tools Exploration**: Try **AI Presentation Tools** → [Beautiful.AI](https://www.beautiful.ai), [Gamma](https://gamma.app), [Slidesgo](https://slidesgo.com).  
 
 ---
 
@@ -62,6 +66,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Takeaway Tasks**:
   - Prepare real-world use cases your project could solve.
   - Explore topics mentioned during the session and complete the assignment.
+  - 🔎 **AI Tools Exploration**: Try **AI Meeting Notes Tools** → [Fireflies](https://fireflies.ai), [Avoma](https://www.avoma.com), [Krisp](https://krisp.ai).  
 
 ---
 
@@ -74,6 +79,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Takeaway Tasks**:
   - Refine project user stories.
   - Implement a basic version in Python (no frameworks).
+  - 🔎 **AI Tools Exploration**: Try **AI Workflow Automation Tools** → [Make](https://www.make.com), [Zapier](https://zapier.com), [N8n](https://n8n.io).  
 
 ---
 
@@ -84,6 +90,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Takeaway Tasks**:
   - Explore alternate frameworks for different domains.
   - Pick a framework for your project and integrate with Python.
+  - 🔎 **AI Tools Exploration**: Try **AI Graphic Design Tools** → [Canva](https://canva.com), [AutoDraw](https://www.autodraw.com), [Visme](https://www.visme.co).  
 
 ---
 
@@ -94,6 +101,7 @@ This repository contains the course content, labs, and projects for **Agentic AI
 - **Practical**: Final project polishing, testing, and showcase.
 - **Takeaway**:
   - Project wrap-up.
+  - 🔎 **AI Tools Exploration**: Try **AI Data Visualization Tools** → [Tableau](https://www.tableau.com), [Flourish](https://flourish.studio), [Juice](https://www.juiceanalytics.com).  
 
 ---
 
@@ -103,12 +111,13 @@ By the end of this course, you will:
 - Build hands-on projects with **OpenAI APIs & Agents**.
 - Work collaboratively using **GitHub & Agile methodology**.
 - Deliver a **final Agentic AI project** integrated with frameworks.
+- Get exposure to **50+ industry AI tools** across categories.  
 
 ---
 
 ## 📌 Resources
-- 📺 YouTube Playlist: 
-- 💻 GitHub Repo: 
-- 📚 Reading Materials: 
+- 📺 YouTube Playlist: *Coming Soon*  
+- 💻 GitHub Repo: *This Repo*  
+- 📚 Reading Materials: *To be added during sessions*  
 
 ---
