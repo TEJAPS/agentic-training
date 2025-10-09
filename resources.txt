@@ -2,5 +2,4 @@ github labs - https://skills.github.com/
 
 playlist - https://www.youtube.com/watch?v=GGPIjGyUQok&list=PLLUFZCmqicc-vkvCCax14T3OneUyEo2X0
 
-
 journal paper - https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf
