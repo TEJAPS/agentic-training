@@ -1,0 +1,1293 @@
+{
+  "name": "mail-ops-gpt",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "is:unread -category:promotions"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "18e92d1a-a2f5-4054-a50b-b346f5e9b365",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TbzTUep7fvvFZ3B4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const json = item.json;\n\n  \n  const fromAddress = json.from?.value?.[0]?.address || '';\n  const subject = json.subject || '';\n  const message = json.text || '';\n  const threadId = json.threadId || '';\n  const labelId = (json.labelIds || []).find(id => id.startsWith('Label_')) || 'nil';\n\n  items.push({\n    json: {\n      email_summary: {\n        fromAddress,\n        subject,\n        message,\n        threadId,\n        labelId,\n      }\n    }\n  });\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "76332433-ea74-4176-9107-8dada895e4eb",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.email_summary }}",
+        "options": {
+          "systemMessage": "=You are an intelligent email classification and assistant agent.\n\nAnalyze the following email and return a pure JSON object with:\n\n1. \"label\" — One of:\n   - Customer Support(Label_5295203008631966493)\n   - Invoice/Payment(Label_1125445646404579323)\n   - Job Inquiry(Label_293065471517331370)\n   - Collaboration(Label_4710477552062389669)\n   - Uncategorized(Label_8980109402066589186)\n   - Urgent(Label_4666807412233356360)\n\n2. \"reply_draft\" — A polite, short reply (if needed). Use \"null\" if no reply is needed.\n\n3. If the email is from a no-reply address (e.g., \"no-reply@...\") or social/media platforms (e.g., Facebook, Instagram, Twitter, LinkedIn, etc.), do not generate a reply. Set \"reply_draft\" as \"null\" regardless of content.\n\n4. After identifying the label, use the label ID given in the brackets and call Gmail Label Tool to apply that label to the email — but do not add it if the email already has one label ID.\n\n5. If a reply is created (i.e., \"reply_draft\" is not null), always call the Draft Email Tool and include a field called \"draftID\" in the output JSON with the value from the draft tool (e.g., \"r-123456...\"). Never omit \"draftID\" when a draft is generated.\n\n6. Label the email as \"Urgent\" if it appears time-sensitive, includes deadlines, critical issues, or requests a quick response — even if urgency is implied.\n\n7. All reply drafts should be signed off with:\nBest,\n Rajeev\n\nImportant:\n- Return only a valid JSON object.\n- Do NOT include markdown, comments, wrappers, or explanations.\n- Ensure that \"draftID\" is always included if \"reply_draft\" is not null.\n\nExample Output:\n{\n  \"label\": \"Collaboration\",\n  \"reply_draft\": \"Thanks for your email. Happy to explore a collaboration. Let me know your availability.\\n\\nBest,\\n Rajeev\",\n  \"draftID\": \"r-123456\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        16
+      ],
+      "id": "d1c59ad9-7790-4778-8231-27bfd992ba78",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        256
+      ],
+      "id": "6ba6941c-4154-425c-801b-e5826205512d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ATEHUZUmRROuENDx",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "addLabels",
+        "threadId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Thread_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        272,
+        256
+      ],
+      "id": "452d36ac-188d-4db4-8fd0-6f520d8d97f2",
+      "name": "gmail label tool",
+      "webhookId": "ef03a31f-641e-4707-8f26-54d39f5fce43",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TbzTUep7fvvFZ3B4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "threadId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Thread_ID', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        240
+      ],
+      "id": "55f36a1d-9ce8-4019-80b8-b333c6251234",
+      "name": "gmail draft tool",
+      "webhookId": "39bbb3a2-842c-4260-aa9d-e133e173314a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TbzTUep7fvvFZ3B4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = items[0].json.output;\n\n// Step 1: Remove markdown/code block wrappers\nconst cleaned = rawOutput.replace(/```json|```/g, '').trim();\n\n// Step 2: Parse the cleaned string into a JSON object\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (err) {\n  throw new Error('Failed to parse Gemini response: ' + err.message);\n}\n\n// Step 3: Get subject, from, and message\nconst emailSummary = $node[\"Code\"].json.email_summary || {};\nconst from = emailSummary.fromAddress || '';\nconst subject = emailSummary.subject || '';\nconst fullMessage = emailSummary.message || '';\n\n// Step 4: Remove previous reply (if any)\nconst splitRegex = /On\\s.+wrote:/i;\nconst message = splitRegex.test(fullMessage)\n  ? fullMessage.split(splitRegex)[0].trim()\n  : fullMessage.trim();\n\n// Final output (without previousMessage)\nreturn [{\n  json: {\n    ...parsed,\n    from,\n    subject,\n    message\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        16
+      ],
+      "id": "461caf4b-5d37-4676-b613-dedb564d19f6",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e8c4675a-e0c3-4009-8f00-84f062743acd",
+              "leftValue": "={{ $json.label }}",
+              "rightValue": "Urgent|Customer Support|Uncategorized",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            },
+            {
+              "id": "6c949ac1-f2f9-4a8c-b4c5-1732bdc31d40",
+              "leftValue": "={{ $json.reply_draft }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        16
+      ],
+      "id": "b261ab7c-dcce-4369-b75c-d8dd7cf76e7f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $('Gmail Trigger').item.json.id }}",
+        "value": "={{ JSON.stringify({\nmessageId: $node[\"Gmail Trigger\"].json[\"id\"],\n  subject: $node[\"Gmail Trigger\"].json[\"Subject\"],\n  draft_reply: $json.reply_draft,\n  draftID: $json.draftID\n}) }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -16
+      ],
+      "id": "47f9909b-2422-4c6f-9adb-2229e7d44cd9",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "vlTnIJcTe7zGcmbB",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5000805535",
+        "text": "=New Email\n\n*From:* {{ $json.from }}\n*Subject:* {{ $json.subject }}\n*Message:* {{ $json.message }}\n\n----\n\n*AI-Draft Reply:* {{ $json.reply_draft }}\n\n\n----\n\nReply to this message with:\n\"Yes\" to send\n\"Tweak\" to edit the reply\n\"Cancel\" to discard",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Yes",
+                    "additionalFields": {
+                      "callback_data": "=approve_{{ $('Gmail Trigger').item.json.id }}"
+                    }
+                  },
+                  {
+                    "text": "Tweak",
+                    "additionalFields": {
+                      "callback_data": "=tweak_{{ $('Gmail Trigger').item.json.id }}"
+                    }
+                  },
+                  {
+                    "text": "Cancel",
+                    "additionalFields": {
+                      "callback_data": "=cancel_{{ $('Gmail Trigger').item.json.id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        176
+      ],
+      "id": "e6b00780-e03b-4dac-9177-10130b860c6b",
+      "name": "Send a text message",
+      "webhookId": "59eeecf8-cf18-4a76-aa73-2de6236e311f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZRP0tqSeiqGF6Lvs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        1088
+      ],
+      "id": "1fce88aa-c8b3-4007-b8c3-a4e7c280bc9c",
+      "name": "message",
+      "webhookId": "7bbfd655-409f-4adf-afd5-8e2085ca1fb3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZRP0tqSeiqGF6Lvs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "59b62fc6-637b-4512-9224-fc22355254af",
+              "leftValue": "={{ $json.callback_query.from.id.toString() }}",
+              "rightValue": "5000805535",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1ab8f22e-6e49-4bd9-a2fe-e66e304e9fcc",
+              "leftValue": "={{ $json.message.from.id.toString() }}",
+              "rightValue": "5000805535",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        1088
+      ],
+      "id": "e358bd84-d917-4e14-975b-d847f87b4258",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_query }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "d88fd99c-5cb8-4614-bf3c-13394ccec8ee"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        80,
+        1040
+      ],
+      "id": "d59fedc1-5089-4f40-99d5-565a535cab11",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "approve",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "2d274667-f3bf-4f86-b8aa-4b39a3f9405d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "64503149-7290-492f-8793-3d1fae81b84d",
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "cancel",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bdd0817b-4230-4507-ba8e-4807a53120c6",
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "tweak",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        976
+      ],
+      "id": "6143ac3f-87a8-4554-970f-7401382ef59d",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "Draft_Details",
+        "key": "={{ $json.callback_query.data.split(\"_\")[1] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        640,
+        640
+      ],
+      "id": "b273219e-43bc-4d95-82e3-8f62fa0d4e8a",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "vlTnIJcTe7zGcmbB",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Draft_Details }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "2b96032c-b1e3-4242-9df6-313026bf949c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "76cb98dd-6cd4-46eb-85fc-ce6f020fe9ef",
+                    "leftValue": "={{ $json.Draft_Details }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        848,
+        640
+      ],
+      "id": "70bb0b1f-bc6b-4262-ad0f-b52aeb0527d6",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.Draft_Details;\n\nlet parsed;\ntry {\n  parsed = JSON.parse(raw);\n} catch (err) {\n  throw new Error('Invalid JSON in Draft_Details: ' + err.message);\n}\n\n// Convert line breaks to <br> for HTML version\nconst html = parsed.draft_reply.replace(/\\n/g, '<br>');\n\nreturn [\n  {\n    json: {\n      messageId: parsed.messageId,\n      draft_reply: html,       // HTML version with <br>\n      draftID: parsed.draftID\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        560
+      ],
+      "id": "df32fae7-925b-4fab-96e3-07a7eda8a1b0",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.messageId }}",
+        "message": "={{ $json.draft_reply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1424,
+        512
+      ],
+      "id": "66467940-4e0b-4340-8620-03d2f1d9aa26",
+      "name": "Reply to a message",
+      "webhookId": "17da6e3c-60b6-4d18-9614-5efee3844dda",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TbzTUep7fvvFZ3B4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5000805535",
+        "text": "Done! The email reply has been sent.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "reply_to_message_id": "={{ $('message').item.json.callback_query.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        512
+      ],
+      "id": "159c7712-518b-4aa3-baea-39fa17a9c856",
+      "name": "reply sent",
+      "webhookId": "4c72ff30-8bee-4508-9577-25d9120a05b3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZRP0tqSeiqGF6Lvs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('message').item.json.callback_query.data.split(\"_\")[1]}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        768
+      ],
+      "id": "43af2e1f-a748-4930-a102-98a2b54a61f0",
+      "name": "Redis2",
+      "credentials": {
+        "redis": {
+          "id": "vlTnIJcTe7zGcmbB",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "delete",
+        "messageId": "={{ $json.draftID }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1424,
+        656
+      ],
+      "id": "48a9b237-8e2c-472f-ab6d-18d6926b1224",
+      "name": "Delete a draft",
+      "webhookId": "3722cabe-8a5c-4844-878e-47dad4ba7261",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TbzTUep7fvvFZ3B4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5000805535",
+        "text": "The reply for this Email was already sent or cancelled earlier",
+        "additionalFields": {
+          "appendAttribution": false,
+          "reply_to_message_id": "={{ $('message').item.json.callback_query.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        736
+      ],
+      "id": "fbe64894-cdeb-4b39-920d-146d3b160e67",
+      "name": "Alerady took an action",
+      "webhookId": "3cf4a315-6d8d-4eb4-9239-ef9201b6f173",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZRP0tqSeiqGF6Lvs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "Draft_Details",
+        "key": "={{ $json.callback_query.data.split(\"_\")[1] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        640,
+        992
+      ],
+      "id": "8ab969fe-b30e-4b88-84a8-df73983b71a9",
+      "name": "Redis3",
+      "credentials": {
+        "redis": {
+          "id": "vlTnIJcTe7zGcmbB",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "76cb98dd-6cd4-46eb-85fc-ce6f020fe9ef",
+                    "leftValue": "={{ $json.Draft_Details }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Draft_Details }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "2b96032c-b1e3-4242-9df6-313026bf949c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        848,
+        992
+      ],
+      "id": "293cabf8-c60b-49b1-93d4-e8054ddf6406",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.Draft_Details;\n\nlet parsed;\ntry {\n  parsed = JSON.parse(raw);\n} catch (err) {\n  throw new Error('Invalid JSON in Draft_Details: ' + err.message);\n}\n\n\nreturn [\n  {\n    json: {\n      draftID: parsed.draftID,\n          \n                  \n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        1008
+      ],
+      "id": "3ef3f6b1-aae4-488a-87e5-29d967072cfb",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "chatId": "5000805535",
+        "text": "The reply has been discarded and draft removed",
+        "additionalFields": {
+          "appendAttribution": false,
+          "reply_to_message_id": "={{ $('message').item.json.callback_query.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
+        992
+      ],
+      "id": "ada4cd2b-8d24-47d6-a787-16d09708a824",
+      "name": "Reply Cancelled",
+      "webhookId": "4c72ff30-8bee-4508-9577-25d9120a05b3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZRP0tqSeiqGF6Lvs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "Draft_Details",
+        "key": "={{ $json.callback_query.data.split(\"_\")[1] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1248
+      ],
+      "id": "3bb3a1a4-c9f2-4379-baf1-84c42480217a",
+      "name": "Redis4",
+      "credentials": {
+        "redis": {
+          "id": "vlTnIJcTe7zGcmbB",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "76cb98dd-6cd4-46eb-85fc-ce6f020fe9ef",
+                    "leftValue": "={{ $json.Draft_Details }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Draft_Details }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "2b96032c-b1e3-4242-9df6-313026bf949c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        848,
+        1248
+      ],
+      "id": "8642e031-91b0-453b-9808-5a44c34e7881",
+      "name": "Switch4"
+    },
+    {
+      "parameters": {
+        "chatId": "5000805535",
+        "text": "=Got it! please type the changes you'd like. I'll update the draft and share it back for review.\n\nPlease reply to this specific message, so we can track your update properly.\n\n<code>id: {{ $('message').item.json.callback_query.data.split(\"_\")[1] }}</code>",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        1264
+      ],
+      "id": "4abe7279-812c-48ee-9840-c79f0b743fb9",
+      "name": "Send Tweak Message",
+      "webhookId": "4c72ff30-8bee-4508-9577-25d9120a05b3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZRP0tqSeiqGF6Lvs",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "19925cb372c1f7f9",
+          "threadId": "19925cb372c1f7f9",
+          "labelIds": [
+            "UNREAD",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 5702,
+          "headers": {
+            "delivered-to": "Delivered-To: tejapolisetty143@gmail.com",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id d2e1a72fcca58-7722a478a9bsor16022626b3a.5.2025.09.07.13.08.18\r\n        for <tejapolisetty143@gmail.com>\r\n        (Google Transport Security);\r\n        Sun, 07 Sep 2025 13:08:18 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a05:6a20:939d:b0:243:fe1e:2f9e with SMTP id\r\n adf61e73a8af0-2533d6029c4mr8413691637.4.1757275698040; Sun, 07 Sep 2025\r\n 13:08:18 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1757275698; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=JovtelfJ46DNA0kkSp45DSIqDoVEggKDdW7goAzJyn21btpwnfAyY9TO8BaO38a/5J\r\n         3azKixWbpAEDnOBa50Kor2DZdJNxxvQh4hNyQt8WjaSe5HLTUMZYrfJKCdaQSWPK/OYp\r\n         efp+ZqZqYGzWE2ig13EyQiefjeKBCYN+dpQdLqQxfQwF/9o/21DvKIRNzAnqE5XTxwez\r\n         2ZEW6Z+JYaIFGwV9vdiiixr5OIptXF+XUBAJ/J3Xb0Rbo4lil6xJ3kIiukXaTpLlkHwX\r\n         dudXeryul4pwJ0FRJAGiauSpvYZJeW+vBxhwRTkaco71oROIJYII0nJQr+7E/JJ6HtcU\r\n         /bDg==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=R8cHNSRIrfKPpXO3WtoTbu6oaOMnBCDink1CcE1FflE=;\r\n        fh=1sm+1sc9beEZqSTe5hLs/7eKNI5e4LYage3dUb8edtM=;\r\n        b=Qr/FSE7T51+JWSBiBOPZXTagM3pmKeU8N/bqWIGlNE9Wu+AUAK6u74amskeOC2I2pg\r\n         8/C9A5yghomvcC8l6BObkSXDHZ+A5SA0cTycfI/3HMbQv4UTizbC5qFXKZCeLE2Puu0t\r\n         /bJXPzcfs5EFUtWjs4cVi+DTfraLv5j1XN3NQW+T+326VQ/7VwRn93TMaT59W/tsGaD8\r\n         RyhhgifUOr/dRbGR0VP3DBh12+nlKE90r7lm7ZWvmFp+HTAcGUQQn1UNLaMhMV7R3ggs\r\n         dPc+mmLSb2l1dMil9iv/rb99Gu7WrXjGiljEqMiM/PV0X+xOgZ6vpGgI4ZhdDKDy7P7N\r\n         xMUg==;\r\n        dara=google.com",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=dTRKb7pT;\r\n       spf=pass (google.com: domain of tejapolisettys47@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=tejapolisettys47@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "return-path": "Return-Path: <tejapolisettys47@gmail.com>",
+            "received-spf": "Received-SPF: pass (google.com: domain of tejapolisettys47@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=dTRKb7pT;\r\n       spf=pass (google.com: domain of tejapolisettys47@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=tejapolisettys47@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=gmail.com; s=20230601; t=1757275698; x=1757880498; dara=google.com;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=R8cHNSRIrfKPpXO3WtoTbu6oaOMnBCDink1CcE1FflE=;\r\n        b=dTRKb7pTIyWS3YT4koeKO6WjxZwFUAGWN9qx5YVeBZ6/w4/oAxah8tFsQUnevL5nxg\r\n         yx6VIMKXJiGspmI2VvkGWj4qpKKVEN6x9HrBTg3DLC6tYviq2dEpMw0Ft8nDDjUAc4M9\r\n         BBjYnnAYwOXcUEyJxI16p6hDyBJ4rJjhJN7EeeIGsMaT5n9i9eY69f4BdA3JijeMVmpK\r\n         DwR3Os8C5PwAKcv5slBBDGSE8Z6j3NeWIw4aemFfF9xKM77ulyKQBl9ExIRX9yqNCuKU\r\n         og0KmAOx2hKeu+jl5aOwQH7lKc9Y79kIGonCtmyB5hGtZcUrHfM5+tZBTRO8PgKDBIXr\r\n         IDpg==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20230601; t=1757275698; x=1757880498;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-message-state\r\n         :from:to:cc:subject:date:message-id:reply-to;\r\n        bh=R8cHNSRIrfKPpXO3WtoTbu6oaOMnBCDink1CcE1FflE=;\r\n        b=rM4M5t/lAcEzwK/lpLPoyTh7wv7r9JbUHQxnHfyKLH7ISZahcfY9cL9eotpjCJPCr2\r\n         T6OhNrURBg1Z+BoHgmUttYi3N+I6Y32PiSAyLWQCbs+7Fbkdxvcexf9HjIlVlhHQf76V\r\n         Zj58W05PfJo5Pvoixb3ClcUVm2jaAFk/oDoBLoL03GRy4wsxMneHGTyg8aCLu/B2oPL5\r\n         m9tlC4ZTc4hP5ITNX/y7GX9J+vST+rEO4eCbxjHJp3sHPDnPKRCOFST1dYrKOAr9+ztU\r\n         ZWzdKYI58TvTe1vaDQ11fx7Gar5BXA4XcEUE+SxJODgNgcDj1I+Q/WtxTiY8mb9LvYTu\r\n         0jgw==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0YxNstQJYyE6/2RRPau4EDTNFYZ4RMdXYBpLjbDJAV+FUggZ0d8q\r\n\tNXmBGy8bf0m7KfpdhQ48xOlMdw18NRjzSIf1dKF6o/q0PEMmch0xU6ZQyTJnNzOgwP5XBk5zjQb\r\n\tYmJd2aXJmHoSYwWM60eqy0T6Ugih3XIR/H0BQ",
+            "x-gm-gg": "X-Gm-Gg: ASbGncsg2TNHn5sQQ86H2Zv0TG5WAiJ2d5FAKXoLlWeeLZ6oYpBFzDHfL19ByQ0MFUH\r\n\tRv8miVNBgzcYkY4wHBHL8Dk0jHl5jUc7ZigphZbPp1CamINPFISGpdu5MqQ+Fjdpkiou9CrPTgo\r\n\tMVjc5fcwqYXzqwDz76sE6ybNEvYbemthJIc6mmzHjq/BwraSGCrPzanS4wp+XgRHtwagpmrYtlv\r\n\txfQZTk=",
+            "x-google-smtp-source": "X-Google-Smtp-Source: AGHT+IFRcjVdNghefxRY36gwZv6B2S/pNPYO1FhI4ckjmzAjMoShUUg0/lF3g9Butuav5/CSCg7Q/PTChNlzEjooTSs=",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: Teja Polisetty Sai <tejapolisettys47@gmail.com>",
+            "date": "Date: Mon, 8 Sep 2025 01:37:40 +0530",
+            "x-gm-features": "X-Gm-Features: Ac12FXx47vUZ57jARnrdTGBtWzTOCFelhdzcaUiyaTK2wyzgJlp1Nvx0rmwTlZQ",
+            "message-id": "Message-ID: <CAMqV-y=7GXmVXrgAg=sELqKBPwGnL6_Hvr0Rh9dUid=AY3w4pw@mail.gmail.com>",
+            "subject": "Subject: testing n8n email",
+            "to": "To: tejapolisetty143@gmail.com",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"000000000000c115f9063e3ba1d5\""
+          },
+          "html": "<div dir=\"ltr\">this is body<div>thanks and regards</div><div>teja</div></div>\n",
+          "text": "this is body\nthanks and regards\nteja\n",
+          "textAsHtml": "<p>this is body<br/>thanks and regards<br/>teja</p>",
+          "subject": "testing n8n email",
+          "date": "2025-09-07T20:07:40.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "tejapolisetty143@gmail.com",
+                "name": ""
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><a href=\"mailto:tejapolisetty143@gmail.com\" class=\"mp_address_email\">tejapolisetty143@gmail.com</a></span>",
+            "text": "tejapolisetty143@gmail.com"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "tejapolisettys47@gmail.com",
+                "name": "Teja Polisetty Sai"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Teja Polisetty Sai</span> &lt;<a href=\"mailto:tejapolisettys47@gmail.com\" class=\"mp_address_email\">tejapolisettys47@gmail.com</a>&gt;</span>",
+            "text": "\"Teja Polisetty Sai\" <tejapolisettys47@gmail.com>"
+          },
+          "messageId": "<CAMqV-y=7GXmVXrgAg=sELqKBPwGnL6_Hvr0Rh9dUid=AY3w4pw@mail.gmail.com>"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gmail label tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gmail draft tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "message": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alerady took an action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delete a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message": {
+      "main": [
+        [
+          {
+            "node": "reply sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "reply sent": {
+      "main": [
+        [
+          {
+            "node": "Redis2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis3": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Alerady took an action",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Delete a draft",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reply Cancelled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply Cancelled": {
+      "main": [
+        [
+          {
+            "node": "Redis2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis4": {
+      "main": [
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch4": {
+      "main": [
+        [
+          {
+            "node": "Alerady took an action",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Tweak Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "abb7e15e-d9e1-4cc0-895a-5c9bbbe1d7a4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "91e9524f6d4abb3d5fbf60215e7058c686eb8bcbbd8c71115da2fbcec6e8f012"
+  },
+  "id": "koQG1THt758vRHlT",
+  "tags": []
+}
