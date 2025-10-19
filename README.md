@@ -121,3 +121,13 @@ By the end of this course, you will:
 - 📚 Reading Materials: *To be added during sessions*  
 
 ---
+## 📌 Project
+ - Choose topic which is a real world problem
+ - Consider the concepts learned during the course - tools, resources, agents, agentic workflows, agentic pattern, handoffs, guardrails, memory, persistance, vector storage and many such.
+ - Consider any hosting platform like hugging face.
+ - Prepare project either using frameworks discussed in the course or any other of your interest like N8N, langchain, bedrock, crewi or others.
+ - Prepare a proper documentation/ readme which includes high level details, low level details, different flow diagrams, architecture diagrams
+- Prepare a video recording which shows different scenarios of inputs and working of your project along with you.
+- Prepare a ppt to showcase your work.
+- Codebase, readme documentation, ppt everything should be pushed to github.
+- Fill the google form with your github url.
