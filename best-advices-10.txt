@@ -1,0 +1,10 @@
+1. Start with the problem
+2. Define success metrics
+3. Favor workflow > autonomy
+4. Build bottom‑up
+5. Start simple, scale later
+6. Use large models first, then optimize
+7. Focus on context not memory
+8. Prompts solve most issues
+9. Trace everything
+10. Be scientific – iterate.

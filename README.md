@@ -1,4 +1,4 @@
-# 🚀 AgenticAI GenAI & LLM Training (8 Days)
+# 🚀 AgenticAI & LLM Training (8 Days)
 
 This repository contains the course content, labs, and projects for **Agentic AI, Generative AI, and LLMs** training designed for students.  
 
@@ -45,11 +45,11 @@ This repository contains the course content, labs, and projects for **Agentic AI
 
 ---
 
-### **Week 4: LLM vs GenAI vs Agentic AI**
+### **Week 4: LLM vs GenAI vs Agentic AI, and N8N framework**
 - **Topics**:
   - Compare LLM, GenAI, and Agentic AI.
   - Intro to OpenAI API (ChatCompletion, Embeddings).
-- **Practical**: Skeleton chatbot project using OpenAI API.
+- **Practical**: Agentic AI workflow using N8N frameworks.
 - **Takeaway Tasks**:
   - Explore differences between the three.
   - GitHub assignment: Extend chatbot with custom prompts.
@@ -57,12 +57,12 @@ This repository contains the course content, labs, and projects for **Agentic AI
 
 ---
 
-### **Week 5: Agents & Multi-Agent Systems**
+### **Week 5: Agents & Multi-Agent Systems using OPENAI SDK**
 - **Topics**:
   - What are AI Agents?
   - Types: task-based, reactive, planning, multi-agent.
   - Use agents in the chatbot skeleton.
-- **Practical**: Add a “research agent” and “summarizer agent” to the chatbot.
+- **Practical**: Add a “research agent” and “summarizer agent” to the chatbot. Agentic AI workflow core development using OPENAI SDK.
 - **Takeaway Tasks**:
   - Prepare real-world use cases your project could solve.
   - Explore topics mentioned during the session and complete the assignment.
@@ -70,12 +70,12 @@ This repository contains the course content, labs, and projects for **Agentic AI
 
 ---
 
-### **Week 6: Models, Use Cases & Agile**
+### **Week 6: Models, Use Cases, Agile And Agentic AI Open SDK Frameowrk**
 - **Topics**:
   - Explore available models (GPT, Claude, Gemini, LLaMA).
   - Pricing & limitations.
   - Agile methodology (standup, backlog, sprint planning).
-- **Practical**: Start **team project** with Agile + GitHub workflows.
+- **Practical**: Start **team project** with Agile + GitHub workflows. Agentic AI workflow development using OPENAI SDK Framework.
 - **Takeaway Tasks**:
   - Refine project user stories.
   - Implement a basic version in Python (no frameworks).
@@ -83,10 +83,10 @@ This repository contains the course content, labs, and projects for **Agentic AI
 
 ---
 
-### **Week 7: Agentic Frameworks**
+### **Week 7: Langchain and Langsmith Agentic Frameworks**
 - **Topics**:
   - Explore frameworks: LangChain, CrewAI, LangGraph, AutoGPT.
-- **Practical**: Use LangChain to extend project (memory, RAG).
+- **Practical**: Use LangChain to extend project (memory, RAG), and Langsmith framework for tracing LLM.
 - **Takeaway Tasks**:
   - Explore alternate frameworks for different domains.
   - Pick a framework for your project and integrate with Python.
@@ -94,11 +94,11 @@ This repository contains the course content, labs, and projects for **Agentic AI
 
 ---
 
-### **Week 8: Advanced Frameworks & Final Project**
+### **Week 8: MCP & Final Project**
 - **Topics**:
   - Practical on another framework (CrewAI or LangGraph).
   - Project wrap-up & presentations.
-- **Practical**: Final project polishing, testing, and showcase.
+- **Practical**: Build using MCP and final project.
 - **Takeaway**:
   - Project wrap-up.
   - 🔎 **AI Tools Exploration**: Try **AI Data Visualization Tools** → [Tableau](https://www.tableau.com), [Flourish](https://flourish.studio), [Juice](https://www.juiceanalytics.com).  
@@ -112,6 +112,7 @@ By the end of this course, you will:
 - Work collaboratively using **GitHub & Agile methodology**.
 - Deliver a **final Agentic AI project** integrated with frameworks.
 - Get exposure to **50+ industry AI tools** across categories.  
+- Tools: sendgrid, serper.dev, pushover, and many such for email, sms, google search, and etc.
 
 ---
 
